@@ -18,6 +18,10 @@ const {
 } = require("@google/generative-ai");
 
 /* Express */
+app.use('/assets', express.static(__dirname + '/src/assets'));
+app.use('/css', express.static(__dirname + '/src/css'));
+app.use('/js', express.static(__dirname + '/src/js'));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
