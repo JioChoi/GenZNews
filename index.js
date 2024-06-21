@@ -53,7 +53,7 @@ async function startAutomation() {
 	// Get news every 1 minute
 	setIntervalAndExecute(updateNews, 1000 * 60 * 1);
 
-	// Generate article every 2 minutes
+	//Generate article every 2 minutes
 	setIntervalAndExecute(generate, 1000 * 60 * 2);
 }
 
@@ -233,6 +233,7 @@ async function updateNews() {
 	updateCbsUSNews();
 	updateCbsWorldNews();
 	updateNbcNews();
+	console.log(news.length);
 }
 
 async function getArticleContent(url, query) {
@@ -390,7 +391,7 @@ async function updateFoxNews() {
 		let response = await axios(config);
 		let articles = response.data;
 	
-		let tempTitle = foxLastTitle;
+		let lastTitleChanged = false;
 	
 		for (let i = 0; i < articles.length; i++) {
 			const article = articles[i];
@@ -408,13 +409,12 @@ async function updateFoxNews() {
 				url: new URL(article.url, "https://www.foxnews.com").href,
 				query: ".article-body p:not(p:has(strong, span))" // Removes ads and captions
 			});
-	
-			if(i == 0) {
-				tempTitle = article.title;
+
+			if (!lastTitleChanged) {
+				lastTitleChanged = true;
+				foxLastTitle = article.title;
 			}
 		}
-	
-		foxLastTitle = tempTitle;
 	} catch (e) {
 		console.log("Error in updateFoxNews()");
 		console.log(e);
