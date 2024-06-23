@@ -228,10 +228,11 @@ async function createArticle(title, image, content, original = "") {
 
 /* News */
 let news = [];
-let foxLastTitle = "";
-let nbcLastTitle = "";
-let cbsUSLastTitle = "";
-let cbsWorldLastTitle = "";
+
+let foxHistory = [];
+let nbcHistory = [];
+let cbsUSHistory = [];
+let cbsWorldHistory = [];
 
 async function updateNews() {
 	updateFoxNews();
@@ -269,6 +270,8 @@ async function getArticleContent(url, query) {
 
 async function updateCbsWorldNews() {
 	try {
+		cbsWorldHistory = cbsWorldHistory.slice(-20);
+
 		let response = await axios.get('https://www.cbsnews.com/world/');
 		response = response.data;
 
@@ -276,16 +279,14 @@ async function updateCbsWorldNews() {
 		let articles = dom.window.document.querySelector("#component-topic-world");
 		articles = articles.querySelectorAll(".item--type-article");
 
-		let tempTitle = cbsWorldLastTitle;
-
 		for (let i = 0; i < articles.length; i++) {
 			const article = articles[i];
 
 			let title = article.querySelector(".item__hed").textContent.trim();
 			let link = article.querySelector("a").href;
 
-			if (title == cbsWorldLastTitle) {
-				break;
+			if (cbsWorldHistory.includes(link)) {
+				continue;
 			}
 
 			news.push({
@@ -294,12 +295,8 @@ async function updateCbsWorldNews() {
 				query: ".content__body > p"
 			});
 
-			if (i == 0) {
-				tempTitle = title;
-			}
+			cbsWorldHistory.push(link);
 		}
-
-		cbsWorldLastTitle = tempTitle;
 	} catch (e) {
 		console.log("Error in updateCbsWorldNews()");
 		console.log(e);
@@ -308,23 +305,23 @@ async function updateCbsWorldNews() {
 
 async function updateCbsUSNews() {
 	try {
+		cbsUSHistory = cbsUSHistory.slice(-20);
+
 		let response = await axios.get('https://www.cbsnews.com/us/');
 		response = response.data;
 	
 		const dom = new JSDOM(response);
 		let articles = dom.window.document.querySelector("#component-topic-us");
 		articles = articles.querySelectorAll(".item--type-article");
-	
-		let tempTitle = cbsUSLastTitle;
-	
+		
 		for (let i = 0; i < articles.length; i++) {
 			const article = articles[i];
 	
 			let title = article.querySelector(".item__hed").textContent.trim();
 			let link = article.querySelector("a").href;
 	
-			if (title == cbsUSLastTitle) {
-				break;
+			if (cbsUSHistory.includes(link)) {
+				continue;
 			}
 	
 			news.push({
@@ -332,13 +329,9 @@ async function updateCbsUSNews() {
 				url: link,
 				query: ".content__body > p"
 			});
-	
-			if (i == 0) {
-				tempTitle = title;
-			}
+
+			cbsUSHistory.push(link);
 		}
-	
-		cbsUSLastTitle = tempTitle;
 	} catch (e) {
 		console.log("Error in updateCbsUSNews()");
 		console.log(e);
@@ -347,24 +340,22 @@ async function updateCbsUSNews() {
 
 async function updateNbcNews(time) {
 	try {
+		nbcHistory = nbcHistory.slice(-20);
 
 		let response = await axios.get('https://www.nbcnews.com/latest-stories');
-		//response = await pretty(response.data);
 		response = response.data;
 	
 		const dom = new JSDOM(response);
 		let articles = dom.window.document.querySelectorAll(".wide-tease-item__info-wrapper");
-	
-		let tempTitle = nbcLastTitle;
 	
 		for (let i = 0; i < articles.length; i++) {
 			const article = articles[i];
 	
 			let title = article.querySelector(".wide-tease-item__headline").textContent.trim();
 			let link = article.querySelectorAll("a")[1].href;
-	
-			if (title == nbcLastTitle) {
-				break;
+			
+			if (nbcHistory.includes(link)) {
+				continue;
 			}
 	
 			news.push({
@@ -372,13 +363,9 @@ async function updateNbcNews(time) {
 				url: link,
 				query: ".article-body__content > p"
 			});
-	
-			if (i == 0) {
-				tempTitle = title;
-			}
+
+			nbcHistory.push(link);
 		}
-	
-		nbcLastTitle = tempTitle;
 	} catch (e) {
 		console.log("Error in updateNbcNews()");
 		console.log(e);
@@ -387,6 +374,7 @@ async function updateNbcNews(time) {
 
 async function updateFoxNews() {
 	try {
+		foxHistory = foxHistory.slice(-20);
 
 		let config = {
 			method: 'get',
@@ -396,29 +384,24 @@ async function updateFoxNews() {
 		let response = await axios(config);
 		let articles = response.data;
 	
-		let lastTitleChanged = false;
-	
 		for (let i = 0; i < articles.length; i++) {
 			const article = articles[i];
 	
 			if (article.isLive == true || article.url.includes('/video/')) {
 				continue;
 			}
-	
-			if (article.title == foxLastTitle) {
-				break;
+
+			if (foxHistory.includes(article.url)) {
+				continue;
 			}
-	
+			
 			news.push({
 				title: article.title,
 				url: new URL(article.url, "https://www.foxnews.com").href,
 				query: ".article-body p:not(p:has(strong, span))" // Removes ads and captions
 			});
 
-			if (!lastTitleChanged) {
-				lastTitleChanged = true;
-				foxLastTitle = article.title;
-			}
+			foxHistory.push(article.url);
 		}
 	} catch (e) {
 		console.log("Error in updateFoxNews()");
