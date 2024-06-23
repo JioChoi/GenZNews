@@ -81,7 +81,7 @@ async function generate() {
 	let image = await generateImage(content);
 
 	console.log("Creating article...");
-	await createArticle(title, image, generatedContent);
+	await createArticle(title, image, generatedContent, article.url);
 
 	console.log("Done!");
 }
@@ -209,14 +209,14 @@ async function getArticle(id) {
 	return response.rows[0];
 }
 
-async function createArticle(title, image, content) {
+async function createArticle(title, image, content, original = "") {
 	let date = Date.now();
 
 	let id = Math.floor(date / 1000).toString(16);
 	id = id.substring(6, 8) + id.substring(0, 6);
 
-	let query = "INSERT INTO genznews.articles (id, title, content, image, time) VALUES ($1, $2, $3, $4, $5)";
-	await queryDB(query, [id, title, content, image, date]);
+	let query = "INSERT INTO genznews.articles (id, title, content, image, time, original) VALUES ($1, $2, $3, $4, $5, $6)";
+	await queryDB(query, [id, title, content, image, date, original]);
 
 	return id;
 }
