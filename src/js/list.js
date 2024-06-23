@@ -2,24 +2,56 @@ const ARTICLE_LOAD_SIZE = 10;
 let nextLoadPosition = 0;
 
 document.addEventListener('DOMContentLoaded', function () {
+	createSkeleton();
 	loadPopularArticles();
 	loadLatestArticles();
 });
 
+function createSkeleton() {
+	let popular = document.getElementById('list_popular');
+	let latest = document.getElementById('list_latest');
+
+	for (let i = 0; i < 5; i++) {
+		popular.appendChild(createSkeletonItem());
+	}
+
+	for (let i = 0; i < ARTICLE_LOAD_SIZE; i++) {
+		latest.appendChild(createSkeletonItem());
+	}
+}
+
+function createSkeletonItem() {
+	let item = document.createElement('div');
+	item.className = 'item skeleton';
+
+	let div = document.createElement('div');
+
+	item.appendChild(div.cloneNode());
+	item.appendChild(div.cloneNode());
+	item.appendChild(div.cloneNode());
+	item.appendChild(div.cloneNode());
+
+	return item;
+}
+
 async function loadPopularArticles() {
 	let popular = document.getElementById('list_popular');
+	let temp = document.createElement('div');
 
 	let articles = await fetch(host + '/api/popular');
 	articles = await articles.json();
 
 	for (let article of articles) {
 		let item = createItem(article.title, article.time, article.image, article.id);
-		popular.appendChild(item);
+		temp.appendChild(item);
 	}
+
+	popular.innerHTML = temp.innerHTML;
 }
 
 async function loadLatestArticles() {
 	let latest = document.getElementById('list_latest');
+	let temp = document.createElement('div');
 
 	let articles = await fetch(host + '/api/articles?' + new URLSearchParams({
 		start: nextLoadPosition,
@@ -30,7 +62,14 @@ async function loadLatestArticles() {
 
 	for (let article of articles) {
 		let item = createItem(article.title, article.time, article.image, article.id);
-		latest.appendChild(item);
+		temp.appendChild(item);
+	}
+
+	if (nextLoadPosition == 0) {
+		latest.innerHTML = temp.innerHTML;
+	}
+	else {
+		latest.innerHTML += temp.innerHTML;
 	}
 
 	nextLoadPosition += articles.length;
