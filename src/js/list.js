@@ -1,11 +1,28 @@
 const ARTICLE_LOAD_SIZE = 10;
 let nextLoadPosition = 0;
+let loading = false;
 
 document.addEventListener('DOMContentLoaded', function () {
 	createSkeleton();
 	loadPopularArticles();
 	loadLatestArticles();
 });
+
+async function load() {
+	if (loading) {
+		return;
+	}
+
+	loading = true;
+
+	document.getElementById('more').innerHTML = 'LOADING...';
+
+	await loadLatestArticles();
+
+	loading = false;
+	document.getElementById('more').innerHTML = 'MOAR!!! ▼';
+
+}
 
 function createSkeleton() {
 	let popular = document.getElementById('list_popular');
