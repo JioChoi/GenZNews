@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/src/index.html');
 });
 
-app.listen(port, () => {
+app.listen(port, async () => {
 	process.env.TZ = "America/New_York";
 	
 	if (process.argv.length > 2 && process.argv[2] == "dev") {
@@ -118,7 +118,7 @@ async function generateArticleContent(content) {
 
 async function generateImage(content) {
 	const prompt = [
-		{text: "I want to find a thumbnail for this news article. Please give me one keyword to search. Give me only the keyword. Do not give me people's name.\n\n" + content},
+		{text: "I want to find a thumbnail for this news article. Please give me one keyword to search. Give me only the keyword.\n\n" + content},
 		{text: "output: "},
 	];
 
@@ -128,7 +128,12 @@ async function generateImage(content) {
 		return await getUnsplashImage("cat");
 	}
 
-	let image = await getUnsplashImage(response);
+	let image = await getFlickrImage(response);
+
+	if (image == null) {
+		return await getUnsplashImage("cat");
+	}
+	
 	return image;
 }
 
@@ -480,7 +485,7 @@ const FLICKR_API_KEY = process.env.FLICKR_API_KEY;
 async function getUnsplashImage(query) {
 	let config = {
 		method: 'get',
-		url: `https://unsplash.com/napi/search/photos?query=${query}&per_page=30`,
+		url: `https://unsplash.com/napi/search/photos?query=${query}&per_page=10`,
 	};
 
 	let response = await axios(config);
@@ -514,7 +519,7 @@ async function getFlickrImage(query) {
 				text: query,
 				sort: 'relevance',
 				extras: 'url_l',
-				per_page: 20,
+				per_page: 10,
 				page: 1,
 				license: '4,5,6,9,10',
 				format: 'json',
@@ -530,12 +535,10 @@ async function getFlickrImage(query) {
 		let response = await axios.request(config);
 		response = response.data.photos.photo;
 		if (response.length == 0) {
-			return await getFlickrImage("cat");
+			return null;
 		}
 
-		console.log(response);
 		let image = response[Math.floor(Math.random() * response.length)];
-		console.log(image);
 
 		return image.url_l;
 	} catch (e) {
