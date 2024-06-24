@@ -35,8 +35,6 @@ app.get('/', (req, res) => {
 });
 
 app.get('/article/:id', (req, res) => {
-	let tm = Date.now();
-
 	fs.readFile(__dirname + '/src/article.html', 'utf8', async (err, data) => {
 		if (err) {
 			res.status(500).send("Internal Server Error");
@@ -55,8 +53,6 @@ app.get('/article/:id', (req, res) => {
 		data = data.replaceAll("${image}", article.image);
 		data = data.replaceAll("${content}", article.content);
 		data = data.replaceAll("${time}", article.time);
-
-		console.log((Date.now() - tm) / 1000 + "s");
 
 		res.send(data);
 	});
