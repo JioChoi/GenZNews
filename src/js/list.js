@@ -3,9 +3,18 @@ let nextLoadPosition = 0;
 let loading = false;
 
 document.addEventListener('DOMContentLoaded', function () {
-	createSkeleton();
-	loadPopularArticles();
-	loadLatestArticles();
+	let popular = document.getElementById('list_popular');
+	let latest = document.getElementById('list_latest');
+
+	if (popular) {
+		createSkeleton(popular, 5);
+		loadPopularArticles();
+	}
+
+	if (latest) {
+		createSkeleton(latest, ARTICLE_LOAD_SIZE);
+		loadLatestArticles();
+	}
 });
 
 async function load() {
@@ -24,16 +33,9 @@ async function load() {
 
 }
 
-function createSkeleton() {
-	let popular = document.getElementById('list_popular');
-	let latest = document.getElementById('list_latest');
-
-	for (let i = 0; i < 5; i++) {
-		popular.appendChild(createSkeletonItem());
-	}
-
-	for (let i = 0; i < ARTICLE_LOAD_SIZE; i++) {
-		latest.appendChild(createSkeletonItem());
+function createSkeleton(element, size) {
+	for (let i = 0; i < size; i++) {
+		element.appendChild(createSkeletonItem());
 	}
 }
 

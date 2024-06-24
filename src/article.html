@@ -10,6 +10,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.45/moment-timezone-with-data.min.js" integrity="sha512-t/mY3un180WRfsSkWy4Yi0tAxEDGcY2rAEx873hb5BrkvLA0QLk54+SjfYgFBBoCdJDV1H86M8uyZdJhAOHeyA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script src="/js/default.js"></script>
 	<script src="/js/article.js"></script>
+	<script src="/js/list.js"></script>
 </head>
 <body>
 	<div class="header" onclick="home()">
@@ -28,7 +29,14 @@
 			<p id="img-desc">Unrelated with the article.</p>
 
 			${content}
+			<p id="copyright">This article is generated using <strong>Gen-Z AI</strong>.</p>
 		</div>
+
+		<h1>New 👀</h1>
+		<div class="list" id="list_latest">
+		</div>
+
+		<div id="more" onclick="load()">MOAR!!! ▼</div>
 	</div>
 
 	<div class="footer">

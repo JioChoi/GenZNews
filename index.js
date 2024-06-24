@@ -122,10 +122,10 @@ async function generate() {
 	}
 
 	console.log("Generating image...");
-	let image = await generateImage(content);
+	let [image, keyword] = await generateImage(content);
 
 	console.log("Creating article...");
-	await createArticle(title, image, generatedContent, article.url);
+	await createArticle(title, image, generatedContent, article.url, keyword);
 
 	console.log("Done!");
 }
@@ -170,7 +170,7 @@ async function generateImage(content) {
 	let response = await gemini(prompt);
 
 	if (response == null) {
-		return await getUnsplashImage("cat", 100);
+		return [await getUnsplashImage("cat", 100), response];
 	}
 
 	let image = await getFlickrImage(response);
@@ -179,11 +179,11 @@ async function generateImage(content) {
 		image = await getUnsplashImage(response);
 
 		if (image == null) {
-			return await getUnsplashImage("cat", 100);
+			return [await getUnsplashImage("cat", 100), response];
 		}
 	}
 	
-	return image;
+	return [image, response];
 }
 
 function setIntervalAndExecute(fn, t) {
@@ -266,14 +266,14 @@ async function getArticle(id) {
 	return response.rows[0];
 }
 
-async function createArticle(title, image, content, original = "") {
+async function createArticle(title, image, content, original = "", keyword = "") {
 	let date = Date.now();
 
 	let id = Math.floor(date / 1000).toString(16);
 	id = id.substring(6, 8) + id.substring(0, 6);
 
-	let query = "INSERT INTO genznews.articles (id, title, content, image, time, original) VALUES ($1, $2, $3, $4, $5, $6)";
-	await queryDB(query, [id, title, content, image, date, original]);
+	let query = "INSERT INTO genznews.articles (id, title, content, image, time, original, keyword) VALUES ($1, $2, $3, $4, $5, $6, $7)";
+	await queryDB(query, [id, title, content, image, date, original, keyword]);
 
 	return id;
 }
