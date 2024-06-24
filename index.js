@@ -51,8 +51,28 @@ app.get('/article/:id', (req, res) => {
 
 		data = data.replaceAll("${title}", article.title);
 		data = data.replaceAll("${image}", article.image);
-		data = data.replaceAll("${content}", article.content);
 		data = data.replaceAll("${time}", article.time);
+
+		let content = article.content;
+
+		content = content.replaceAll("<", "&lt;");
+		content = content.replaceAll(">", "&gt;");
+		content = content.replaceAll("  ", " ");
+		content = content.replaceAll("*", "");
+		content = content.replaceAll("#", "");
+		
+		content = content.split("\n");
+
+		let buffer = "";
+		content.forEach((line, index) => {
+			line = line.trim();
+
+			if (line.length != 0) {
+				buffer += `<p>${line}</p>`;
+			}
+		});
+
+		data = data.replaceAll("${content}", buffer);
 
 		res.send(data);
 	});
@@ -150,13 +170,17 @@ async function generateImage(content) {
 	let response = await gemini(prompt);
 
 	if (response == null) {
-		return await getUnsplashImage("cat");
+		return await getUnsplashImage("cat", 100);
 	}
 
 	let image = await getFlickrImage(response);
 
 	if (image == null) {
-		return await getUnsplashImage("cat");
+		image = await getUnsplashImage(response);
+
+		if (image == null) {
+			return await getUnsplashImage("cat", 100);
+		}
 	}
 	
 	return image;
@@ -493,19 +517,18 @@ async function gemini(prompt) {
 /* Flickr */
 const FLICKR_API_KEY = process.env.FLICKR_API_KEY;
 
-async function getUnsplashImage(query) {
+async function getUnsplashImage(query, size = 10) {
 	let config = {
 		method: 'get',
-		url: `https://unsplash.com/napi/search/photos?query=${query}&per_page=10`,
+		url: `https://unsplash.com/napi/search/photos?query=${query}&per_page=${size}`,
 	};
 
 	let response = await axios(config);
 	response = response.data.results;
 	response = response.filter(x => x.premium == false);
-	response = response.splice(0, 5);
 
 	if (response.length == 0) {
-		return await getUnsplashImage("cat");
+		return null;
 	}
 
 	let index = Math.floor(Math.random() * response.length);
@@ -519,7 +542,7 @@ async function getUnsplashImage(query) {
 	return url;
 }
 
-async function getFlickrImage(query) {
+async function getFlickrImage(query, size = 10) {
 	try {
 		let config = {
 			method: 'get',
@@ -530,7 +553,7 @@ async function getFlickrImage(query) {
 				text: query,
 				sort: 'relevance',
 				extras: 'url_l',
-				per_page: 10,
+				per_page: size,
 				page: 1,
 				license: '4,5,6,9,10',
 				format: 'json',
