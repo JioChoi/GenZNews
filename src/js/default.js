@@ -1,4 +1,8 @@
-let host = 'http://127.0.0.1'
+let host;
+
+document.addEventListener('DOMContentLoaded', function () {
+	host = window.location.origin;
+});
 
 function toUSTime(time) {
 	let date = moment(Number(time)).tz("America/New_York").format('LLL');
