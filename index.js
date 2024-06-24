@@ -75,6 +75,9 @@ app.get('/article/:id', (req, res) => {
 		data = data.replaceAll("${content}", buffer);
 
 		res.send(data);
+
+		let query = "UPDATE genznews.articles SET view = view + 1 WHERE id = $1";
+		await queryDB(query, [id]);
 	});
 });
 
