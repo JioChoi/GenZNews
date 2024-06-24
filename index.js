@@ -34,19 +34,37 @@ app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/src/index.html');
 });
 
+app.get('/article/:id', (req, res) => {
+	let tm = Date.now();
+
+	fs.readFile(__dirname + '/src/article.html', 'utf8', async (err, data) => {
+		if (err) {
+			res.status(500).send("Internal Server Error");
+			return;
+		}
+
+		let id = req.params.id;
+		let article = await getArticle(id);
+		
+		if (article == null) {
+			res.status(404).send("Not Found");
+			return;
+		}
+
+		data = data.replaceAll("${title}", article.title);
+		data = data.replaceAll("${image}", article.image);
+		data = data.replaceAll("${content}", article.content);
+		data = data.replaceAll("${time}", article.time);
+
+		console.log((Date.now() - tm) / 1000 + "s");
+
+		res.send(data);
+	});
+});
+
 app.listen(port, async () => {
 	process.env.TZ = "America/New_York";
 
-	// console.log(await ai([
-	// 	{ role: "system", content: "You are the Gen Z Reporter, adept at writing a news article in Gen Z slang. Your specialty lies in seamlessly integrating terms like \"rizz\" for flirting ability, \"ong\" as a substitute for \"omg,\" \"skibidi\" for generic words, \"delulu\" for delusional, and using phrases like \"gyat\" instead of \"butt\", \"the rizzler\" for an interesting person, \"sus\" for \"weird\" or \"suspicious\", \"fr fr\" instead of \"indeed\", \"it's giving\" instead of \"that seems like it's.\"\n\nBeyond these, you fluently incorporate any other relevant Gen Z slang into your responses such as Low Key, Bet, Glow Up, Finna, Fam, Tea, Drip, Salty, IYKYK, Hits different, basic, based, bussin, boujee, ghosted, cap, sus, big yikes, sending me, main character, cancelled, gyat.\n\nYou deliver this in a fun and engaging style, filled with mispellings, informal phrases (such as substituting \"u\" for \"you\"), no capitalization, and irreverence, and emojis. \n\nYou embody the spirit of Gen Z, making conversations lively and relatable for those who enjoy or are curious about this unique language style. Do NOT use millennial terms like \"yo, hella, swag, bruh\".\n\nWrite an original news article based on the given article. The first line should be the title of the article." },
-	// 	{ role: "user", content: "Write a news based on this article: \n\n" + await getArticleContent("https://www.foxnews.com/us/transgender-utah-woman-shot-parents-dead-told-police-she-would-do-again-police", ".article-body p:not(p:has(strong, span))") },
-	// ]));
-
-	// console.log(await gemini([
-	// 	{text: "input: You are the Gen Z Reporter, adept at writing a news article in Gen Z slang. Your specialty lies in seamlessly integrating terms like \"rizz\" for flirting ability, \"ong\" as a substitute for \"omg,\" \"skibidi\" for generic words, \"delulu\" for delusional, and using phrases like \"gyat\" instead of \"butt\", \"the rizzler\" for an interesting person, \"sus\" for \"weird\" or \"suspicious\", \"fr fr\" instead of \"indeed\", \"it's giving\" instead of \"that seems like it's.\"\n\nBeyond these, you fluently incorporate any other relevant Gen Z slang into your responses such as Low Key, Bet, Glow Up, Finna, Fam, Tea, Drip, Salty, IYKYK, Hits different, basic, based, bussin, boujee, ghosted, cap, sus, big yikes, sending me, main character, cancelled, gyat.\n\nYou deliver this in a fun and engaging style, filled with mispellings, informal phrases (such as substituting \"u\" for \"you\"), no capitalization, and irreverence, and emojis. \n\nYou embody the spirit of Gen Z, making conversations lively and relatable for those who enjoy or are curious about this unique language style. Do NOT use millennial terms like \"yo, hella, swag, bruh\".\n\n Write an original news article based on the given article. The first line should be the title of the article. Write a news based on this article: \n\n" + await getArticleContent("https://www.foxnews.com/us/transgender-utah-woman-shot-parents-dead-told-police-she-would-do-again-police", ".article-body p:not(p:has(strong, span))")},
-	// 	{text: "output: "}
-	// ]));
-	
 	if (process.argv.length > 2 && process.argv[2] == "dev") {
 		console.log(`Server is running on port ${port} (dev)`);
 	}
@@ -154,7 +172,7 @@ function setIntervalAndExecute(fn, t) {
 }
 
 /* DB */
-const client = new pg.Pool({
+const pool = new pg.Pool({
 	user: "avnadmin",
 	password: process.env.DB_PASS,
 	host: process.env.DB_HOST,
@@ -167,17 +185,20 @@ const client = new pg.Pool({
     }
 });
 
-client.connect(err => {
-	if (err) {
-		console.error('connection error', err.stack);
-	} else {
-		console.log('connected');
-	}
-});
+// client.connect(err => {
+// 	if (err) {
+// 		console.error('connection error', err.stack);
+// 	} else {
+// 		console.log('connected');
+// 	}
+// });
 
 async function queryDB(query, params) {
 	try {
+		const client = await pool.connect();
 		let response = await client.query(query, params);
+		client.release();
+
 		return response;
 	} catch (e) {
 		console.log("Error in queryDB()");
