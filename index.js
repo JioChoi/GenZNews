@@ -49,6 +49,9 @@ app.get('/sitemap.xml', async (req, res) => {
 		res.send(sitemap);
 		return;
 	}
+	else {
+		res.status(404).send("Sitemap not generated yet");
+	}
 });
 
 app.get('/article/:id', (req, res) => {
