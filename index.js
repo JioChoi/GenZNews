@@ -288,17 +288,20 @@ async function createArticle(title, image, content, original = "", keyword = "")
 /* News */
 let news = [];
 
-let foxHistory = [];
-let nbcHistory = [];
-let cbsUSHistory = [];
-let cbsWorldHistory = [];
-
 async function updateNews() {
+	console.log("Updating news...");
 	updateFoxNews();
 	updateCbsUSNews();
 	updateCbsWorldNews();
 	updateNbcNews();
 	console.log(news.length);
+}
+
+async function checkURLUsed(url) {
+	let query = "SELECT exists (SELECT 1 FROM genznews.articles WHERE original = $1)";
+	let response = await queryDB(query, [url]);
+
+	return response.rows[0].exists;
 }
 
 async function getArticleContent(url, query) {
@@ -329,8 +332,6 @@ async function getArticleContent(url, query) {
 
 async function updateCbsWorldNews() {
 	try {
-		cbsWorldHistory = cbsWorldHistory.slice(-20);
-
 		let response = await axios.get('https://www.cbsnews.com/world/');
 		response = response.data;
 
@@ -344,7 +345,7 @@ async function updateCbsWorldNews() {
 			let title = article.querySelector(".item__hed").textContent.trim();
 			let link = article.querySelector("a").href;
 
-			if (cbsWorldHistory.includes(link)) {
+			if (await checkURLUsed(link)) {
 				continue;
 			}
 
@@ -353,8 +354,6 @@ async function updateCbsWorldNews() {
 				url: link,
 				query: ".content__body > p"
 			});
-
-			cbsWorldHistory.push(link);
 		}
 	} catch (e) {
 		console.log("Error in updateCbsWorldNews()");
@@ -364,8 +363,6 @@ async function updateCbsWorldNews() {
 
 async function updateCbsUSNews() {
 	try {
-		cbsUSHistory = cbsUSHistory.slice(-20);
-
 		let response = await axios.get('https://www.cbsnews.com/us/');
 		response = response.data;
 	
@@ -379,17 +376,15 @@ async function updateCbsUSNews() {
 			let title = article.querySelector(".item__hed").textContent.trim();
 			let link = article.querySelector("a").href;
 	
-			if (cbsUSHistory.includes(link)) {
+			if (await checkURLUsed(link)) {
 				continue;
 			}
-	
+
 			news.push({
 				title: title,
 				url: link,
 				query: ".content__body > p"
 			});
-
-			cbsUSHistory.push(link);
 		}
 	} catch (e) {
 		console.log("Error in updateCbsUSNews()");
@@ -399,8 +394,6 @@ async function updateCbsUSNews() {
 
 async function updateNbcNews(time) {
 	try {
-		nbcHistory = nbcHistory.slice(-20);
-
 		let response = await axios.get('https://www.nbcnews.com/latest-stories');
 		response = response.data;
 	
@@ -412,18 +405,16 @@ async function updateNbcNews(time) {
 	
 			let title = article.querySelector(".wide-tease-item__headline").textContent.trim();
 			let link = article.querySelectorAll("a")[1].href;
-			
-			if (nbcHistory.includes(link)) {
+	
+			if (await checkURLUsed(link)) {
 				continue;
 			}
-	
+
 			news.push({
 				title: title,
 				url: link,
 				query: ".article-body__content > p"
 			});
-
-			nbcHistory.push(link);
 		}
 	} catch (e) {
 		console.log("Error in updateNbcNews()");
@@ -433,8 +424,6 @@ async function updateNbcNews(time) {
 
 async function updateFoxNews() {
 	try {
-		foxHistory = foxHistory.slice(-20);
-
 		let config = {
 			method: 'get',
 			url: 'https://www.foxnews.com/api/article-search?searchBy=tags&values=fox-news&excludeBy=tags&excludeValues=&from=0&size=10'
@@ -450,7 +439,7 @@ async function updateFoxNews() {
 				continue;
 			}
 
-			if (foxHistory.includes(article.url)) {
+			if (await checkURLUsed(article.url)) {
 				continue;
 			}
 			
@@ -459,8 +448,6 @@ async function updateFoxNews() {
 				url: new URL(article.url, "https://www.foxnews.com").href,
 				query: ".article-body p:not(p:has(strong, span))" // Removes ads and captions
 			});
-
-			foxHistory.push(article.url);
 		}
 	} catch (e) {
 		console.log("Error in updateFoxNews()");
