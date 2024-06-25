@@ -27,7 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-	origin: ['https://genznews.onrender.com', 'http://127.0.0.1', 'https://genznews.cc'],
+	origin: ['https://genznews.onrender.com', 'http://127.0.0.1', 'https://genznews.org'],
 	optionsSuccessStatus: 200
 }));
 
@@ -51,7 +51,7 @@ app.get('/article/:id', (req, res) => {
 		}
 
 		data = data.replaceAll("${title}", article.title);
-		data = data.replaceAll("${url}", "https://genznews.cc/article/" + id);
+		data = data.replaceAll("${url}", "https://genznews.org/article/" + id);
 		data = data.replaceAll("${image}", article.image);
 		data = data.replaceAll("${time}", article.time);
 
