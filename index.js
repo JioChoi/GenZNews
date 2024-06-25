@@ -226,6 +226,7 @@ const pool = new pg.Pool({
 	database: "defaultdb",
 	keepAlive: true,
 	connectionTimeoutMillis: 10000,
+	idleTimeoutMillis: 600000 * 60,
 	max: 5,
 
 	ssl: {
@@ -466,8 +467,6 @@ async function updateFoxNews() {
 			if (await checkURLUsed(url)) {
 				continue;
 			}
-
-			console.log(url);
 			
 			news.push({
 				title: article.title,
