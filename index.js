@@ -202,6 +202,9 @@ const pool = new pg.Pool({
 	host: process.env.DB_HOST,
 	port: 17890,
 	database: "defaultdb",
+	keepAlive: true,
+	connectionTimeoutMillis: 10000,
+	max: 10,
 
 	ssl: {
 		require: true,
@@ -209,20 +212,20 @@ const pool = new pg.Pool({
     }
 });
 
-// client.connect(err => {
-// 	if (err) {
-// 		console.error('connection error', err.stack);
-// 	} else {
-// 		console.log('connected');
-// 	}
-// });
+pool.connect(err => {
+	if (err) {
+		console.error('connection error', err.stack);
+	} else {
+		console.log('connected');
+	}
+});
 
 async function queryDB(query, params) {
 	try {
-		const client = await pool.connect();
-		let response = await client.query(query, params);
-		client.release();
-
+		let start = Date.now();
+		let response = await pool.query(query, params);
+		console.log("Query took " + ((Date.now() - start) / 1000) + "s");
+		
 		return response;
 	} catch (e) {
 		console.log("Error in queryDB()");
