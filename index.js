@@ -125,7 +125,7 @@ async function generate() {
 	}
 
 	console.log("Generating image...");
-	let [image, keyword] = await generateImage(content);
+	let [image, keyword] = await generateImage(generatedContent);
 
 	console.log("Creating article...");
 	await createArticle(title, image, generatedContent, article.url, keyword);
@@ -166,7 +166,8 @@ async function generateArticleContent(content) {
 
 async function generateImage(content) {
 	const prompt = [
-		{text: "input: I want to find a thumbnail for this news article. Please give me one keyword to search. Give me only the keyword.\n\n" + content},
+		{text: "Give me one broad keyword from this news article. Only give me the keyword."},
+		{text: "input: " + content},
 		{text: "output: "},
 	];
 
@@ -176,10 +177,10 @@ async function generateImage(content) {
 		return [await getUnsplashImage("cat", 100), response];
 	}
 
-	let image = await getFlickrImage(response);
+	let image = await getUnsplashImage(response, 5);
 
 	if (image == null) {
-		image = await getUnsplashImage(response);
+		image = await getFlickrImage(response);
 
 		if (image == null) {
 			return [await getUnsplashImage("cat", 100), response];
@@ -523,12 +524,14 @@ const FLICKR_API_KEY = process.env.FLICKR_API_KEY;
 async function getUnsplashImage(query, size = 10) {
 	let config = {
 		method: 'get',
-		url: `https://unsplash.com/napi/search/photos?query=${query}&per_page=${size}`,
+		url: `https://unsplash.com/napi/search/photos?query=${query}&per_page=100`,
 	};
 
 	let response = await axios(config);
 	response = response.data.results;
 	response = response.filter(x => x.premium == false);
+
+	response = response.slice(0, size);
 
 	if (response.length == 0) {
 		return null;

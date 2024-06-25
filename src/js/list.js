@@ -43,13 +43,25 @@ function createSkeletonItem() {
 	let item = document.createElement('div');
 	item.className = 'item skeleton';
 
-	let div = document.createElement('div');
+	let image = document.createElement('div');
+	image.className = 'image';
 
-	item.appendChild(div.cloneNode());
-	item.appendChild(div.cloneNode());
-	item.appendChild(div.cloneNode());
-	item.appendChild(div.cloneNode());
+	let info = document.createElement('div');
+	info.className = 'info';
 
+	let title = document.createElement('div');
+	title.className = 'title';
+
+	let date = document.createElement('div');
+	date.className = 'date';
+
+	info.appendChild(title.cloneNode(true));
+	info.appendChild(title.cloneNode(true));
+	info.appendChild(date);
+
+	item.appendChild(image);
+	item.appendChild(info);
+	
 	return item;
 }
 
@@ -106,15 +118,20 @@ function createItem(title, time, image, id) {
 	let itemImage = document.createElement('img');
 	itemImage.src = image;
 
+	let info = document.createElement('div');
+	info.className = 'info';
+
 	let itemTitle = document.createElement('h2');
 	itemTitle.innerHTML = title;
 
 	let itemDate = document.createElement('p');
 	itemDate.innerHTML = date;
 
+	info.appendChild(itemTitle);
+	info.appendChild(itemDate);
+
 	item.appendChild(itemImage);
-	item.appendChild(itemTitle);
-	item.appendChild(itemDate);
+	item.appendChild(info);
 
 	a.appendChild(item);
 

@@ -1,3 +1,5 @@
+@import "mixin.scss";
+
 .container .article {
 	margin-top: 14px;
 	padding-bottom: 24px;
@@ -6,6 +8,10 @@
 		font-size: 28px;
 		margin: 12px;
 		margin-bottom: 8px;
+
+		@include desktop {
+			padding-top: 24px;
+		}
 	}
 	#date {
 		margin: 0 12px;
@@ -32,9 +38,15 @@
 	}
 	p {
 		font-size: 16px;
+		font-weight: 400;
 		margin: 12px;
 		margin-bottom: 24px;
 		line-height: 1.5;
+
+		@include desktop {
+			margin-left: 0px;
+			margin-right: 0px;
+		}
 	}
 
 	#copyright {
@@ -43,6 +55,11 @@
 		font-size: 12px;
 		font-weight: 400;
 		color: #969696;
+
+		@include desktop {
+			margin-left: 0px;
+			margin-right: 0px;
+		}
 	}
 	#copyright strong {
 		font-size: 12px;
