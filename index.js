@@ -17,6 +17,12 @@ const {
 	HarmBlockThreshold,
 } = require("@google/generative-ai");
 
+const { SitemapStream, streamToPromise } = require('sitemap');
+const { Readable } = require('stream');
+const { createGzip } = require('zlib')
+
+let sitemap;
+
 /* Express */
 app.use('/assets', express.static(__dirname + '/src/assets'));
 app.use('/css', express.static(__dirname + '/src/css'));
@@ -33,6 +39,16 @@ app.use(cors({
 
 app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/src/index.html');
+});
+
+app.get('/sitemap.xml', async (req, res) => {
+	res.header('Content-Type', 'application/xml');
+	res.header('Content-Encoding', 'gzip');
+
+	if (sitemap) {
+		res.send(sitemap);
+		return;
+	}
 });
 
 app.get('/article/:id', (req, res) => {
@@ -87,6 +103,8 @@ app.get('/article/:id', (req, res) => {
 app.listen(port, async () => {
 	process.env.TZ = "America/New_York";
 
+	createSitemap();
+
 	if (process.argv.length > 2 && process.argv[2] == "dev") {
 		console.log(`Server is running on port ${port} (dev)`);
 	}
@@ -134,6 +152,7 @@ async function generate() {
 	await createArticle(title, image, generatedContent, article.url, keyword);
 
 	console.log("Done!");
+	createSitemap();
 }
 
 async function generateArticleContent(content) {
@@ -600,4 +619,30 @@ async function ai(prompt) {
 
 	let response = await axios(config);
 	return response.data.choices[0].message.content;
+}
+
+/* Sitemap */
+async function createSitemap() {
+	try {
+		const smStream = new SitemapStream({ hostname: 'https://genznews.org/' })
+		const pipeline = smStream.pipe(createGzip())
+
+		// pipe your entries or directly write them.
+		smStream.write({ url: '/', changefreq: 'always', priority: 1.0 })
+
+		let query = "SELECT id FROM genznews.articles";
+		let response = await queryDB(query, []);
+		response = response.rows;
+
+		for (let i = 0; i < response.length; i++) {
+			smStream.write({ url: `/article/${response[i].id}`, changefreq: 'daily', priority: 0.7 });
+		}
+
+		// cache the response
+		streamToPromise(pipeline).then(sm => sitemap = sm)
+		// make sure to attach a write stream such as streamToPromise before ending
+		smStream.end()
+	} catch (e) {
+		console.error(e)
+	}
 }
