@@ -461,13 +461,17 @@ async function updateFoxNews() {
 				continue;
 			}
 
-			if (await checkURLUsed(article.url)) {
+			let url = new URL(article.url, "https://www.foxnews.com").href;
+
+			if (await checkURLUsed(url)) {
 				continue;
 			}
+
+			console.log(url);
 			
 			news.push({
 				title: article.title,
-				url: new URL(article.url, "https://www.foxnews.com").href,
+				url: url,
 				query: ".article-body p:not(p:has(strong, span))" // Removes ads and captions
 			});
 		}
