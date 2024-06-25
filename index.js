@@ -228,7 +228,7 @@ const pool = new pg.Pool({
 	port: 17890,
 	database: "defaultdb",
 	keepAlive: true,
-	connectionTimeoutMillis: 10000,
+	connectionTimeoutMillis: 300000,
 	idleTimeoutMillis: 600000 * 60,
 	max: 5,
 
