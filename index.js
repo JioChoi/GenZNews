@@ -21,12 +21,13 @@ const {
 app.use('/assets', express.static(__dirname + '/src/assets'));
 app.use('/css', express.static(__dirname + '/src/css'));
 app.use('/js', express.static(__dirname + '/src/js'));
+app.use('/', express.static(__dirname + '/src/favicon'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-	origin: ['https://nekonews.onrender.com', 'http://127.0.0.1', 'https://nekonews.cc'],
+	origin: ['https://genznews.onrender.com', 'http://127.0.0.1', 'https://genznews.cc'],
 	optionsSuccessStatus: 200
 }));
 
@@ -50,6 +51,7 @@ app.get('/article/:id', (req, res) => {
 		}
 
 		data = data.replaceAll("${title}", article.title);
+		data = data.replaceAll("${url}", "https://genznews.cc/article/" + id);
 		data = data.replaceAll("${image}", article.image);
 		data = data.replaceAll("${time}", article.time);
 
@@ -73,6 +75,7 @@ app.get('/article/:id', (req, res) => {
 		});
 
 		data = data.replaceAll("${content}", buffer);
+		data = data.replaceAll("${description}", content.join(" ").replaceAll("\"", '').substring(0, 200) + "...");
 
 		res.send(data);
 
