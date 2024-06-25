@@ -2,6 +2,9 @@
 @import "variable.scss";
 
 h1 {
+	display: inline-block;
+	margin-bottom: 8px;
+	
 	@include desktop {
 		margin-left: 0px;
 	}

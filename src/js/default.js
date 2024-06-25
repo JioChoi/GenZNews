@@ -12,3 +12,11 @@ function toUSTime(time) {
 function home() {
 	window.location.href = '/';
 }
+
+function moveTop() {
+	window.scrollTo(0, 0);
+}
+
+function moveBottom() {
+	window.scrollTo(0, document.body.scrollHeight);
+}

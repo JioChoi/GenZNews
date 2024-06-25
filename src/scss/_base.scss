@@ -7,6 +7,41 @@ h1 {
 	margin: 14px;
 }
 
+.controls {
+	position: fixed;
+	display: flex;
+
+	flex-direction: row;
+
+	bottom: 12px;
+	right: 12px;
+	z-index: 99;
+
+	div {
+		display: flex;
+
+		justify-content: center;
+		align-items: center;
+
+		width: 40px;
+		height: 40px;
+		margin-left: 4px;
+
+		border-radius: 50%;
+
+		background-color: #3e3e3e7a;
+		color: #ffffff;
+	}
+	div:hover {
+		cursor: pointer;
+		background-color: #5252527a;
+	}
+}
+
+.spacer {
+	height: 85px;
+}
+
 .header {
 	position: fixed;
 
