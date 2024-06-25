@@ -431,6 +431,10 @@ async function updateNbcNews(time) {
 	
 			let title = article.querySelector(".wide-tease-item__headline").textContent.trim();
 			let link = article.querySelectorAll("a")[1].href;
+
+			if (link.includes("/select/")) {
+				continue;
+			}
 	
 			if (await checkURLUsed(link)) {
 				continue;
