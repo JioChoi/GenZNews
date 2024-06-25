@@ -204,7 +204,7 @@ const pool = new pg.Pool({
 	database: "defaultdb",
 	keepAlive: true,
 	connectionTimeoutMillis: 10000,
-	max: 10,
+	max: 5,
 
 	ssl: {
 		require: true,
@@ -222,9 +222,9 @@ pool.connect(err => {
 
 async function queryDB(query, params) {
 	try {
-		let start = Date.now();
+		// let start = Date.now();
 		let response = await pool.query(query, params);
-		console.log("Query took " + ((Date.now() - start) / 1000) + "s");
+		// console.log("Query took " + ((Date.now() - start) / 1000) + "s");
 		
 		return response;
 	} catch (e) {
