@@ -118,6 +118,8 @@ app.listen(port, async () => {
 });
 
 /* Automation */
+let targetURL = "";
+
 async function startAutomation() {
 	console.log("Starting automation...");
 
@@ -136,6 +138,7 @@ async function generate() {
 
 	let article = news.shift();
 	console.log(`Target: ${article.title}`);
+	targetURL = article.url;
 
 	let content = await getArticleContent(article.url, article.query);
 	if (content == null) {
@@ -327,7 +330,19 @@ async function checkURLUsed(url) {
 	let query = "SELECT exists (SELECT 1 FROM genznews.articles WHERE original = $1)";
 	let response = await queryDB(query, [url]);
 
-	return response.rows[0].exists;
+	if (response.rows[0].exists) {
+		return true;
+	}
+
+	if (news.find(x => x.url == url)) {
+		return true;
+	}
+
+	if (targetURL == url) {
+		return true;
+	}
+
+	return false;
 }
 
 async function getArticleContent(url, query) {
